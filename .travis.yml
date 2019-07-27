@@ -1,0 +1,24 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t hackmhd/complex-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true  hackmhd/complex-test npm run test
+
+
+after_success:
+  - docker build -t hackmhd/mulit-client ./client
+  - docker build -t hackmhd/mulit-server ./server
+  - docker build -t hackmhd/mulit-worker ./worker
+  - docker build -t hackmhd/mulit-nginx ./nginx
+  #login to docker cli
+  #get the docker password from the environment vars in travis.ci and add it to standered in 
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  #push these images to docker hub
+  - docker push hackmhd/mulit-client 
+  - docker push hackmhd/mulit-server 
+  - docker push hackmhd/mulit-worker 
+  - docker push hackmhd/mulit-nginx
